@@ -10,17 +10,13 @@ from .models import Tool, Book, Author
 
 def login(request):
     user_list = User.objects.order_by('andrews')[:10]
-    return render(request, 'latest_books.html', {'book_list': user_list})
+    return render(request, 'login.html', {'book_list': user_list})
 
 
 def logout(request):
     user_list = User.objects.order_by('andrews')[:10]
     return render(request, 'login.html', {'book_list': user_list})
 
-
-def index_view(request):
-    context = {}
-    return TemplateResponse(request, 'index.html', context)
 
 
 
