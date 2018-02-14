@@ -11,10 +11,11 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 """
 
 import os
+import sys
 
+import mongoengine
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -27,7 +28,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'mongoengine',
     'shoppingCart',
 ]
 
@@ -83,24 +84,66 @@ PASSWORD_HASHERS = [
 
 WSGI_APPLICATION = 'untitled.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'django',
-        'USER': 'root',
-        'PASSWORD': 'Admin14801612',
-        'HOST': 'localhost',   # Or an IP Address that your DB is hosted on
-        'PORT': '3306',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': '5432',
         # 'ENGINE': 'django.db.backends.sqlite3',
         # 'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
 
+# We define 2 Mongo databases - default and test
+MONGODB_DATABASES = {
+    "default": {
+        "name": "project",
+        "host": "localhost",
+        "port": 27017,
+        "tz_aware": True,  # if you use timezones in django (USE_TZ = True)
+    },
+
+    "test": {
+        "name": "test_project",
+        "host": "localhost",
+        "port": 27017,
+        "tz_aware": True,  # if you use timezones in django (USE_TZ = True)
+    }
+}
+
+
+def is_test():
+    """
+    Checks, if we're running the server for real or in unit-test.
+    We might need a better implementation of this function.
+    """
+    if 'test' in sys.argv or 'testserver' in sys.argv:
+        print("Using a test mongo database")
+        return True
+    else:
+        print("Using a default mongo database")
+        return False
+
+
+if is_test():
+    db = 'test'
+else:
+    db = 'default'
+
+
+# establish connection with default or test database, depending on the management command, being run
+# note that this connection syntax is correct for mongoengine0.9-, but mongoengine0.10+ introduced slight changes
+mongoengine.connect(
+    db=MONGODB_DATABASES[db]['name'],
+    host=MONGODB_DATABASES[db]['host']
+)
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
 
@@ -119,7 +162,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -133,10 +175,9 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
 
-TEMPLATE_DIRS = (os.path.join(BASE_DIR,  'templates'),)
+TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
